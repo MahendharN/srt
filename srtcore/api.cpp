@@ -69,8 +69,6 @@ modified by
 #include "threadname.h"
 #include "srt.h"
 #include "udt.h"
-#include <ifaddrs.h>
-#include <net/if.h>
 
 #ifdef _WIN32
 #include <win/wintime.h>
@@ -912,59 +910,6 @@ SRT_SOCKSTATUS srt::CUDTUnited::getStatus(const SRTSOCKET u)
         return SRTS_NONEXIST;
     }
     return i->second->getStatus();
-}
-
-std::string getInterfaceNameFromSocket(SRTSOCKET sock) {
-    struct sockaddr_storage local_addr;
-    socklen_t addr_len = sizeof(local_addr);
-    if (srt_getsockname(sock, (sockaddr*)&local_addr, (int*)&addr_len) == SRT_ERROR) {
-        std::cerr << "Failed to retrieve socket name: " << srt_getlasterror_str() << std::endl;
-        return "";
-    }
-
-    // Convert the address to a string
-    char ip_str[INET6_ADDRSTRLEN];
-    void* addr_ptr;
-    if (local_addr.ss_family == AF_INET) {
-        addr_ptr = &((struct sockaddr_in*)&local_addr)->sin_addr;
-    } else if (local_addr.ss_family == AF_INET6) {
-        addr_ptr = &((struct sockaddr_in6*)&local_addr)->sin6_addr;
-    } else {
-        std::cerr << "Unknown address family" << std::endl;
-        return "";
-    }
-
-    inet_ntop(local_addr.ss_family, addr_ptr, ip_str, sizeof(ip_str));
-
-    // Now find the interface name that corresponds to this IP
-    struct ifaddrs *ifaddr, *ifa;
-    if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs");
-        return "";
-    }
-
-    std::string if_name = "unknown";
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == NULL)
-            continue;
-
-        if (ifa->ifa_addr->sa_family == local_addr.ss_family) {
-            char addr_buf[INET6_ADDRSTRLEN];
-            if (inet_ntop(ifa->ifa_addr->sa_family,
-                          (ifa->ifa_addr->sa_family == AF_INET) ?
-                          (void*)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr :
-                          (void*)&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr,
-                          addr_buf, sizeof(addr_buf)) != NULL) {
-                if (std::string(addr_buf) == std::string(ip_str)) {
-                    if_name = ifa->ifa_name;
-                    break;
-                }
-            }
-        }
-    }
-
-    freeifaddrs(ifaddr);
-    return if_name;
 }
 
 int srt::CUDTUnited::bind(CUDTSocket* s, const sockaddr_any& name)
