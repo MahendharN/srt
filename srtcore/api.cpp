@@ -54,6 +54,7 @@ modified by
 
 #include <exception>
 #include <stdexcept>
+#include <string>
 #include <typeinfo>
 #include <iterator>
 #include <vector>
@@ -68,6 +69,8 @@ modified by
 #include "threadname.h"
 #include "srt.h"
 #include "udt.h"
+#include <ifaddrs.h>
+#include <net/if.h>
 
 #ifdef _WIN32
 #include <win/wintime.h>
@@ -911,6 +914,59 @@ SRT_SOCKSTATUS srt::CUDTUnited::getStatus(const SRTSOCKET u)
     return i->second->getStatus();
 }
 
+std::string getInterfaceNameFromSocket(SRTSOCKET sock) {
+    struct sockaddr_storage local_addr;
+    socklen_t addr_len = sizeof(local_addr);
+    if (srt_getsockname(sock, (sockaddr*)&local_addr, (int*)&addr_len) == SRT_ERROR) {
+        std::cerr << "Failed to retrieve socket name: " << srt_getlasterror_str() << std::endl;
+        return "";
+    }
+
+    // Convert the address to a string
+    char ip_str[INET6_ADDRSTRLEN];
+    void* addr_ptr;
+    if (local_addr.ss_family == AF_INET) {
+        addr_ptr = &((struct sockaddr_in*)&local_addr)->sin_addr;
+    } else if (local_addr.ss_family == AF_INET6) {
+        addr_ptr = &((struct sockaddr_in6*)&local_addr)->sin6_addr;
+    } else {
+        std::cerr << "Unknown address family" << std::endl;
+        return "";
+    }
+
+    inet_ntop(local_addr.ss_family, addr_ptr, ip_str, sizeof(ip_str));
+
+    // Now find the interface name that corresponds to this IP
+    struct ifaddrs *ifaddr, *ifa;
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        return "";
+    }
+
+    std::string if_name = "unknown";
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        if (ifa->ifa_addr->sa_family == local_addr.ss_family) {
+            char addr_buf[INET6_ADDRSTRLEN];
+            if (inet_ntop(ifa->ifa_addr->sa_family,
+                          (ifa->ifa_addr->sa_family == AF_INET) ?
+                          (void*)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr :
+                          (void*)&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr,
+                          addr_buf, sizeof(addr_buf)) != NULL) {
+                if (std::string(addr_buf) == std::string(ip_str)) {
+                    if_name = ifa->ifa_name;
+                    break;
+                }
+            }
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return if_name;
+}
+
 int srt::CUDTUnited::bind(CUDTSocket* s, const sockaddr_any& name)
 {
     ScopedLock cg(s->m_ControlLock);
@@ -934,6 +990,16 @@ int srt::CUDTUnited::bind(CUDTSocket* s, const sockaddr_any& name)
 
     // copy address information of local node
     s->core().m_pSndQueue->m_pChannel->getSockAddr((s->m_SelfAddr));
+
+    if (s->core().m_pSndQueue->m_pChannel->getNicName(s->m_InterfaceName))
+    {
+        std::cout << "Network Interface: " << s->m_InterfaceName << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to retrieve network interface name." << std::endl;
+    }
+
 
     return 0;
 }
@@ -2156,6 +2222,20 @@ void srt::CUDTUnited::getpeername(const SRTSOCKET u, sockaddr* pw_name, int* pw_
     memcpy((pw_name), &s->m_PeerAddr.sa, len);
     *pw_namelen = len;
 }
+
+void srt::CUDTUnited::getsocketnic(const SRTSOCKET u, std::string& nicname){
+    CUDTSocket* s = locateSocket(u);
+
+    if (!s)
+        throw CUDTException(MJ_NOTSUP, MN_SIDINVAL, 0);
+
+    if (!s->core().m_bConnected || s->core().m_bBroken)
+        throw CUDTException(MJ_CONNECTION, MN_NOCONN, 0);
+    
+    // std::cout<< "macha" << s->m_InterfaceName;
+    // nicname = s->m_InterfaceName;
+}
+
 
 void srt::CUDTUnited::getsockname(const SRTSOCKET u, sockaddr* pw_name, int* pw_namelen)
 {
@@ -3765,6 +3845,21 @@ int srt::CUDT::getpeername(SRTSOCKET u, sockaddr* name, int* namelen)
     }
 }
 
+int srt::CUDT::getsocketnic(SRTSOCKET u, std::string& nicname)
+{
+        std::cout<<"macha"<<std::endl;
+    try
+    {
+        uglobal().getsocketnic(u, nicname);
+        return 1;
+    }
+    catch (const CUDTException& e)
+    {
+        return 0;
+    }
+
+}
+
 int srt::CUDT::getsockname(SRTSOCKET u, sockaddr* name, int* namelen)
 {
     try
@@ -4397,6 +4492,11 @@ int close(SRTSOCKET u)
 int getpeername(SRTSOCKET u, struct sockaddr* name, int* namelen)
 {
     return srt::CUDT::getpeername(u, name, namelen);
+}
+
+int getsocknic(SRTSOCKET u, std::string& nicname)
+{
+    return srt::CUDT::getsocketnic(u, nicname);
 }
 
 int getsockname(SRTSOCKET u, struct sockaddr* name, int* namelen)

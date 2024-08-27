@@ -109,6 +109,7 @@ public:
         , m_GroupMemberData()
         , m_GroupOf()
 #endif
+        , m_InterfaceIndex(-1)
         , m_iISN(0)
         , m_UDT(this, ancestor.m_UDT)
         , m_AcceptCond()
@@ -140,6 +141,10 @@ public:
     SRTSOCKET m_ListenSocket; //< ID of the listener socket; 0 means this is an independent socket
 
     SRTSOCKET m_PeerID; //< peer socket ID
+
+    std::string m_InterfaceName;  // Store the network interface name
+    int m_InterfaceIndex;         // Store the network interface index
+
 #if ENABLE_BONDING
     groups::SocketData* m_GroupMemberData; //< Pointer to group member data, or NULL if not a group member
     CUDTGroup*          m_GroupOf;         //< Group this socket is a member of, or NULL if it isn't
@@ -214,6 +219,22 @@ public:
     bool writeReady() const;
     bool broken() const;
 
+    void setInterfaceName(const std::string& name) {
+        m_InterfaceName = name;
+    }
+
+    void setInterfaceIndex(int index) {
+        m_InterfaceIndex = index;
+    }
+
+    std::string getInterfaceName() const {
+        return m_InterfaceName;
+    }
+
+    int getInterfaceIndex() const {
+        return m_InterfaceIndex;
+    }
+    
 private:
     CUDTSocket& operator=(const CUDTSocket&);
 };
@@ -299,6 +320,7 @@ public:
     int  close(CUDTSocket* s);
     void getpeername(const SRTSOCKET u, sockaddr* name, int* namelen);
     void getsockname(const SRTSOCKET u, sockaddr* name, int* namelen);
+    void getsocketnic(const SRTSOCKET u, std::string& nicname);
     int  select(UDT::UDSET* readfds, UDT::UDSET* writefds, UDT::UDSET* exceptfds, const timeval* timeout);
     int  selectEx(const std::vector<SRTSOCKET>& fds,
                   std::vector<SRTSOCKET>*       readfds,

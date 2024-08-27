@@ -99,7 +99,9 @@ public:
     /// Get the UDP receiving buffer size.
     /// @return Current UDP receiving buffer size.
 
-    int getRcvBufSize();
+    int getRcvBufSize() const;
+
+    bool getNicName(std::string& nic_name);
 
     /// Query the socket address that the channel is using.
     /// @param [out] addr pointer to store the returned socket address.

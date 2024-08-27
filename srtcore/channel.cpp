@@ -55,6 +55,9 @@ modified by
 #include <iomanip> // Logging
 #include <srt_compat.h>
 #include <csignal>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+
 
 #include "channel.h"
 #include "core.h" // srt_logging:kmlog
@@ -602,7 +605,6 @@ int srt::CChannel::getIpToS() const
     return m_mcfg.iIpToS;
 }
 
-#ifdef SRT_ENABLE_BINDTODEVICE
 bool srt::CChannel::getBind(char* dst, size_t len)
 {
     if (m_iSocket == INVALID_SOCKET)
@@ -612,6 +614,7 @@ bool srt::CChannel::getBind(char* dst, size_t len)
     // then return from internal data.
     socklen_t length = len;
     int       res    = ::getsockopt(m_iSocket, SOL_SOCKET, SO_BINDTODEVICE, dst, &length);
+    std::cout<<"HELLLLO"<<dst<<std::endl;
     if (res == -1)
         return false; // Happens on Linux v < 3.8
 
@@ -653,6 +656,62 @@ void srt::CChannel::getSockAddr(sockaddr_any& w_addr) const
     socklen_t namelen = (socklen_t)w_addr.storage_size();
     ::getsockname(m_iSocket, (w_addr.get()), (&namelen));
     w_addr.len = namelen;
+}
+
+bool srt::CChannel::getNicName(std::string& nic_name) const
+{
+    // Extract IP address from m_BindAddr
+    char ip[INET6_ADDRSTRLEN];
+    if (m_BindAddr.family() == AF_INET)
+    {
+        inet_ntop(AF_INET, &(m_BindAddr.sin.sin_addr), ip, sizeof(ip));
+    }
+    else if (m_BindAddr.family() == AF_INET6)
+    {
+        inet_ntop(AF_INET6, &(m_BindAddr.sin6.sin6_addr), ip, sizeof(ip));
+    }
+    else
+    {
+        return false;
+    }
+
+    // Get the list of network interfaces
+    struct ifaddrs *ifaddr, *ifa;
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        perror("getifaddrs");
+        return false;
+    }
+
+    // Iterate over the interfaces to find a match
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == nullptr)
+            continue;
+
+        int family = ifa->ifa_addr->sa_family;
+        char host[INET6_ADDRSTRLEN];
+
+        if (family == AF_INET)
+        {
+            inet_ntop(AF_INET, &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr, host, sizeof(host));
+        }
+        else if (family == AF_INET6)
+        {
+            inet_ntop(AF_INET6, &((struct sockaddr_in6*)ifa->ifa_addr)->sin6_addr, host, sizeof(host));
+        }
+
+        // Check if the IP address matches
+        if (strcmp(ip, host) == 0)
+        {
+            nic_name = ifa->ifa_name;
+            freeifaddrs(ifaddr);
+            return true;
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return false;
 }
 
 void srt::CChannel::getPeerAddr(sockaddr_any& w_addr) const

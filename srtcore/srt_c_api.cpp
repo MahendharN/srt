@@ -17,6 +17,7 @@ written by
 
 #include <iterator>
 #include <fstream>
+#include <string>
 #include "srt.h"
 #include "common.h"
 #include "packet.h"
@@ -159,6 +160,7 @@ int srt_close(SRTSOCKET u)
 
 int srt_getpeername(SRTSOCKET u, struct sockaddr * name, int * namelen) { return CUDT::getpeername(u, name, namelen); }
 int srt_getsockname(SRTSOCKET u, struct sockaddr * name, int * namelen) { return CUDT::getsockname(u, name, namelen); }
+int srt_getsocknic(SRTSOCKET u, std::string& nicname) { std::cout<<"lelele"<<std::endl; return CUDT::getsocketnic(u, nicname);}
 int srt_getsockopt(SRTSOCKET u, int level, SRT_SOCKOPT optname, void * optval, int * optlen)
 { return CUDT::getsockopt(u, level, optname, optval, optlen); }
 int srt_setsockopt(SRTSOCKET u, int level, SRT_SOCKOPT optname, const void * optval, int optlen)
