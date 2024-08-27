@@ -2177,8 +2177,7 @@ void srt::CUDTUnited::getsocketnic(const SRTSOCKET u, std::string& nicname){
     if (!s->core().m_bConnected || s->core().m_bBroken)
         throw CUDTException(MJ_CONNECTION, MN_NOCONN, 0);
     
-    std::cout<< "macha" << s->m_InterfaceName;
-    // nicname = s->m_InterfaceName;
+    nicname = s->m_InterfaceName;
 }
 
 
