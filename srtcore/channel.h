@@ -99,7 +99,7 @@ public:
     /// Get the UDP receiving buffer size.
     /// @return Current UDP receiving buffer size.
 
-    int getRcvBufSize() const;
+    int getRcvBufSize();
 
     bool getNicName(std::string& nic_name);
 
