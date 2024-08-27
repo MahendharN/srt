@@ -615,7 +615,6 @@ bool srt::CChannel::getBind(char* dst, size_t len)
     // then return from internal data.
     socklen_t length = len;
     int       res    = ::getsockopt(m_iSocket, SOL_SOCKET, SO_BINDTODEVICE, dst, &length);
-    std::cout<<"HELLLLO"<<dst<<std::endl;
     if (res == -1)
         return false; // Happens on Linux v < 3.8
 

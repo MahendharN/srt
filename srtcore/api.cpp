@@ -936,15 +936,7 @@ int srt::CUDTUnited::bind(CUDTSocket* s, const sockaddr_any& name)
     // copy address information of local node
     s->core().m_pSndQueue->m_pChannel->getSockAddr((s->m_SelfAddr));
 
-    if (s->core().m_pSndQueue->m_pChannel->getNicName(s->m_InterfaceName))
-    {
-        std::cout << "Network Interface: " << s->m_InterfaceName << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to retrieve network interface name." << std::endl;
-    }
-
+    s->core().m_pSndQueue->m_pChannel->getNicName(s->m_InterfaceName);
 
     return 0;
 }
@@ -974,6 +966,8 @@ int srt::CUDTUnited::bind(CUDTSocket* s, UDPSOCKET udpsock)
 
     // copy address information of local node
     s->core().m_pSndQueue->m_pChannel->getSockAddr(s->m_SelfAddr);
+
+    s->core().m_pSndQueue->m_pChannel->getNicName(s->m_InterfaceName);
 
     return 0;
 }
@@ -3791,7 +3785,6 @@ int srt::CUDT::getpeername(SRTSOCKET u, sockaddr* name, int* namelen)
 
 int srt::CUDT::getsocketnic(SRTSOCKET u, std::string& nicname)
 {
-        std::cout<<"macha"<<std::endl;
     try
     {
         uglobal().getsocketnic(u, nicname);
