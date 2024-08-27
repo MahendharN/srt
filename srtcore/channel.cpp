@@ -605,6 +605,7 @@ int srt::CChannel::getIpToS() const
     return m_mcfg.iIpToS;
 }
 
+#ifdef SRT_ENABLE_BINDTODEVICE
 bool srt::CChannel::getBind(char* dst, size_t len)
 {
     if (m_iSocket == INVALID_SOCKET)
