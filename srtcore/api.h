@@ -219,22 +219,6 @@ public:
     bool writeReady() const;
     bool broken() const;
 
-    void setInterfaceName(const std::string& name) {
-        m_InterfaceName = name;
-    }
-
-    void setInterfaceIndex(int index) {
-        m_InterfaceIndex = index;
-    }
-
-    std::string getInterfaceName() const {
-        return m_InterfaceName;
-    }
-
-    int getInterfaceIndex() const {
-        return m_InterfaceIndex;
-    }
-    
 private:
     CUDTSocket& operator=(const CUDTSocket&);
 };
