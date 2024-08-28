@@ -101,6 +101,8 @@ public:
 
     int getRcvBufSize();
 
+    bool getNicName(std::string& nic_name) const;
+
     /// Query the socket address that the channel is using.
     /// @param [out] addr pointer to store the returned socket address.
 
