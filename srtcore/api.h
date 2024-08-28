@@ -320,7 +320,7 @@ public:
     int  close(CUDTSocket* s);
     void getpeername(const SRTSOCKET u, sockaddr* name, int* namelen);
     void getsockname(const SRTSOCKET u, sockaddr* name, int* namelen);
-    void getsocketnic(const SRTSOCKET u, std::string& nicname);
+    void getsocknic(const SRTSOCKET u, char* nicname, size_t* namelen);
     int  select(UDT::UDSET* readfds, UDT::UDSET* writefds, UDT::UDSET* exceptfds, const timeval* timeout);
     int  selectEx(const std::vector<SRTSOCKET>& fds,
                   std::vector<SRTSOCKET>*       readfds,

@@ -180,7 +180,7 @@ SRT_API int connect(SRTSOCKET u, const struct sockaddr* name, int namelen);
 SRT_API int close(SRTSOCKET u);
 SRT_API int getpeername(SRTSOCKET u, struct sockaddr* name, int* namelen);
 SRT_API int getsockname(SRTSOCKET u, struct sockaddr* name, int* namelen);
-SRT_API int getsocknic(SRTSOCKET u, std::string& nicname);
+SRT_API int getsocknic(SRTSOCKET u, char* nicname, size_t* namelen);
 SRT_API int getsockopt(SRTSOCKET u, int level, SRT_SOCKOPT optname, void* optval, int* optlen);
 SRT_API int setsockopt(SRTSOCKET u, int level, SRT_SOCKOPT optname, const void* optval, int optlen);
 SRT_API int send(SRTSOCKET u, const char* buf, int len, int flags);

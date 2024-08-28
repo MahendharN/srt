@@ -2162,7 +2162,7 @@ void srt::CUDTUnited::getpeername(const SRTSOCKET u, sockaddr* pw_name, int* pw_
     *pw_namelen = len;
 }
 
-void srt::CUDTUnited::getsocketnic(const SRTSOCKET u, std::string& nicname){
+void srt::CUDTUnited::getsocknic(const SRTSOCKET u, char* nicname, size_t* namelen){
     CUDTSocket* s = locateSocket(u);
 
     if (!s)
@@ -2171,7 +2171,9 @@ void srt::CUDTUnited::getsocketnic(const SRTSOCKET u, std::string& nicname){
     if (!s->core().m_bConnected || s->core().m_bBroken)
         throw CUDTException(MJ_CONNECTION, MN_NOCONN, 0);
     
-    nicname = s->m_InterfaceName;
+    // Copy the stored NIC name
+    std::strncpy(nicname, s->m_InterfaceName.c_str(), *namelen);
+    *namelen = s->m_InterfaceName.length();
 }
 
 
@@ -3783,11 +3785,11 @@ int srt::CUDT::getpeername(SRTSOCKET u, sockaddr* name, int* namelen)
     }
 }
 
-int srt::CUDT::getsocketnic(SRTSOCKET u, std::string& nicname)
+int srt::CUDT::getsocknic(SRTSOCKET u, char* nicname, size_t* namelen)
 {
     try
     {
-        uglobal().getsocketnic(u, nicname);
+        uglobal().getsocknic(u, nicname, namelen);
         return 1;
     }
     catch (const CUDTException& e)
@@ -4431,9 +4433,9 @@ int getpeername(SRTSOCKET u, struct sockaddr* name, int* namelen)
     return srt::CUDT::getpeername(u, name, namelen);
 }
 
-int getsocknic(SRTSOCKET u, std::string& nicname)
+int getsocknic(SRTSOCKET u, char* nicname, size_t* namelen)
 {
-    return srt::CUDT::getsocketnic(u, nicname);
+    return srt::CUDT::getsocknic(u, nicname, namelen);
 }
 
 int getsockname(SRTSOCKET u, struct sockaddr* name, int* namelen)
