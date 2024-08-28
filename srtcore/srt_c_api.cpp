@@ -17,7 +17,6 @@ written by
 
 #include <iterator>
 #include <fstream>
-#include <string>
 #include "srt.h"
 #include "common.h"
 #include "packet.h"
