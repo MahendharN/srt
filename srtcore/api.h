@@ -109,7 +109,6 @@ public:
         , m_GroupMemberData()
         , m_GroupOf()
 #endif
-        , m_InterfaceIndex(-1)
         , m_iISN(0)
         , m_UDT(this, ancestor.m_UDT)
         , m_AcceptCond()
@@ -143,7 +142,6 @@ public:
     SRTSOCKET m_PeerID; //< peer socket ID
 
     std::string m_InterfaceName;  // Store the network interface name
-    int m_InterfaceIndex;         // Store the network interface index
 
 #if ENABLE_BONDING
     groups::SocketData* m_GroupMemberData; //< Pointer to group member data, or NULL if not a group member
