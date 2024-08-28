@@ -2168,7 +2168,10 @@ void srt::CUDTUnited::getsocknic(const SRTSOCKET u, char* nicname, size_t* namel
     if (!s)
         throw CUDTException(MJ_NOTSUP, MN_SIDINVAL, 0);
 
-    if (!s->core().m_bConnected || s->core().m_bBroken)
+    if (s->core().m_bBroken)
+        throw CUDTException(MJ_NOTSUP, MN_SIDINVAL, 0);
+
+    if (s->m_Status == SRTS_INIT)
         throw CUDTException(MJ_CONNECTION, MN_NOCONN, 0);
     
     // Copy the stored NIC name
