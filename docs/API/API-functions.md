@@ -63,6 +63,7 @@ Since SRT v1.5.0.
 |:------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
 | [srt_getpeername](#srt_getpeername)               | Retrieves the remote address to which the socket is connected                                                  |
 | [srt_getsockname](#srt_getsockname)               | Extracts the address to which the socket was bound                                                             |
+| [srt_getsocknic](#srt_getsocknic)                 | Retrieves the name of the network interface associated with the socket                                           |
 | [srt_getsockopt](#srt_getsockopt)                 | Gets the value of the given socket option (from a socket or a group)                                           |
 | [srt_getsockflag](#srt_getsockflag)               | Gets the value of the given socket option (from a socket or a group)                                           |
 | [srt_setsockopt](#srt_setsockopt)                 | Sets a value for a socket option in the socket or group                                                        |
@@ -1588,6 +1589,7 @@ The following options are allowed to be set on the member socket:
 ## Options and Properties
 
 * [srt_getpeername](#srt_getpeername)
+* [srt_getsocknic](#srt_getsocknic)
 * [srt_getsockname](#srt_getsockname)
 * [srt_getsockopt, srt_getsockflag](#srt_getsockopt-srt_getsockflag)
 * [srt_setsockopt, srt_setsockflag](#srt_setsockopt-srt_setsockflag)
@@ -1613,6 +1615,40 @@ Retrieves the remote address to which the socket is connected.
 | [`SRT_ENOCONN`](#srt_enoconn)   | Socket [`u`](#u) isn't connected, so there's no remote address to return |
 | <img width=240px height=1px/>   | <img width=710px height=1px/>                      |
 
+
+[:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
+
+---
+
+### srt_getsocknic
+```
+int srt_getsocknic   (SRTSOCKET u, char* nicname, size_t* namelen);
+```
+
+Retrieves the name of the network interface (NIC) associated with a given socket. This function can be used to identify the network interface used for the socket's communication.
+
+|      Returns                  |                                                           |
+|:----------------------------- |:--------------------------------------------------------- |
+| `SRT_ERROR`                   | (-1) in case of error, otherwise 0                        |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                             |
+
+|       Errors                    |                                                |
+|:------------------------------- |:---------------------------------------------- |
+| [`SRT_EINVSOCK`](#srt_einvsock) | Socket [`u`](#u) indicates no valid socket ID  |
+| [`SRT_ENOCONN`](#srt_enoconn)   | Socket [`u`](#u) isn't bound, so there's no NIC to return |
+
+Example
+
+```c++
+char nicname[IFNAMSIZ];
+size_t namelen = IFNAMSIZ;
+int res = srt_getsocknic(m_socket, nicname, &namelen);
+if (res < 0) {
+    std::cerr << "Error " << srt_getlasterror_str() << '\n';
+} else {
+    std::cout << "NIC name: " << nicname << '\n';
+}
+```
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
 

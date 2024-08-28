@@ -16,7 +16,6 @@ written by
 #ifndef INC_SRTC_H
 #define INC_SRTC_H
 
-#include <string>
 #ifndef SRT_API
 #ifdef _WIN32
    #ifdef SRT_DYNAMIC
